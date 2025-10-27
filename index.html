@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>n8n Google Sheet Verification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #f8f9fa;
+      color: #333;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      margin: 0.5rem 0.5rem 1rem 0;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    pre {
+      background: #eee;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>n8n → Google Sheet Verification</h1>
+
+  <button id="findBtn">Find Row</button>
+  <button id="verifyBtn" style="display:none;">Verify</button>
+
+  <pre id="rowData">Click "Find Row" to load data.</pre>
+
+  <script>
+    // Replace these with your actual webhook URLs
+    const findRowUrl = "https://materialize.app.n8n.cloud/webhook/admin-next";
+    const verifyRowUrl = "https://materialize.app.n8n.cloud/webhook/verify";
+
+    let currentRow = null;
+
+    // 🟢 Find row
+    document.getElementById("findBtn").addEventListener("click", async () => {
+      document.getElementById("rowData").textContent = "Loading data...";
+      try {
+        const res = await fetch(findRowUrl);
+        const data = await res.json();
+
+        // Your webhook returns data directly (not under data.row)
+        currentRow = data;
+        document.getElementById("rowData").textContent =
+          JSON.stringify(data, null, 2);
+
+        // Show Verify button if we have a row_number
+        if (data.row_number) {
+          document.getElementById("verifyBtn").style.display = "inline-block";
+        }
+      } catch (err) {
+        document.getElementById("rowData").textContent =
+          "Error fetching data. Check console.";
+        console.error(err);
+      }
+    });
+
+    // 🟡 Verify row
+    document.getElementById("verifyBtn").addEventListener("click", async () => {
+      if (!currentRow || !currentRow.row_number)
+        return alert("No row loaded or missing row_number.");
+      try {
+        const res = await fetch(verifyRowUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            row_number: currentRow.row_number,
+            wallet: currentRow["Wallet Address"],
+            verified: true
+          }),
+        });
+        const data = await res.json();
+        document.getElementById("rowData").textContent =
+          "✅ Row verified successfully:\n" + JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById("rowData").textContent =
+          "❌ Verification failed. Check console.";
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>

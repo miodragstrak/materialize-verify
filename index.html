@@ -2,97 +2,148 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>n8n Google Sheet Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Materialize Admin Console</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      background: #f8f9fa;
-      color: #333;
-    }
-    button {
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      margin: 0.5rem 0.5rem 1rem 0;
-      cursor: pointer;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background-color: #0e0524;
       color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
+      text-align: center;
     }
-    button:hover {
-      background: #0056b3;
+
+    h1 {
+      color: #f5b352;
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(245, 179, 82, 0.6);
     }
-    pre {
-      background: #eee;
-      padding: 1rem;
-      border-radius: 6px;
-      overflow-x: auto;
-      white-space: pre-wrap;
+
+    .card {
+      background: #1a0d3a;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 0 25px rgba(245, 179, 82, 0.3);
+      border: 1px solid rgba(245, 179, 82, 0.4);
+      text-align: left;
+    }
+
+    .label {
+      color: #f5b352;
+      font-weight: bold;
+    }
+
+    .value {
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #f5b352;
+      color: #0e0524e0;
+      border: none;
+      padding: 14px 36px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px rgba(245, 179, 82, 0.5);
+      margin-top: 20px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(245, 179, 82, 0.8);
+    }
+
+    .secondary {
+      background: transparent;
+      border: 2px solid #f5b352;
+      color: #f5b352;
+      margin-top: 12px;
+    }
+
+    .secondary:hover {
+      background: #f5b352;
+      color: #0e0524e0;
+    }
+
+    a.download-link {
+      display: inline-block;
+      margin-top: 14px;
+      color: #f5b352;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    a.download-link:hover {
+      text-decoration: underline;
+      color: #ffcc66;
     }
   </style>
 </head>
 <body>
-  <h1>n8n → Google Sheet Verification</h1>
+  <h1>🧾 Materialize Admin Console</h1>
 
-  <button id="findBtn">Find Row</button>
-  <button id="verifyBtn" style="display:none;">Verify</button>
+  <div class="card">
+    <p><span class="label">🕒 Time:</span> <span class="value" id="time">—</span></p>
+    <p><span class="label">👛 Wallet:</span> <span class="value" id="wallet">—</span></p>
+    <p><span class="label">🎨 NFT Name:</span> <span class="value" id="nft">—</span></p>
+    <p><span class="label">🧬 G-Code:</span> <span class="value">DEFAB2025</span></p>
 
-  <pre id="rowData">Click "Find Row" to load data.</pre>
+    <a
+      href="https://drive.google.com/file/d/your_gcode_file_id/view?usp=sharing"
+      class="download-link"
+      target="_blank"
+    >
+      ⬇️ Download G-Code File
+    </a>
+
+    <button class="btn" id="verifyBtn">✅ Mark as Produced / Verified</button>
+    <button class="btn secondary" id="nextBtn">➡️ Load Next Job</button>
+  </div>
 
   <script>
-    // Replace these with your actual webhook URLs
-    const findRowUrl = "https://materialize.app.n8n.cloud/webhook/admin-next";
-    const verifyRowUrl = "https://materialize.app.n8n.cloud/webhook/verify";
+    const verifyBtn = document.getElementById("verifyBtn");
+    const nextBtn = document.getElementById("nextBtn");
 
-    let currentRow = null;
-
-    // 🟢 Find row
-    document.getElementById("findBtn").addEventListener("click", async () => {
-      document.getElementById("rowData").textContent = "Loading data...";
+    async function loadNextJob() {
+      nextBtn.textContent = "⏳ Loading...";
       try {
-        const res = await fetch(findRowUrl);
+        const res = await fetch("https://materialize.app.n8n.cloud/webhook/https://drive.google.com/file/d/1hM_L47oT6nMWKYYtFoSQny5RGIJms4gx/view?usp=sharing/admin-next");
         const data = await res.json();
 
-        // Your webhook returns data directly (not under data.row)
-        currentRow = data;
-        document.getElementById("rowData").textContent =
-          JSON.stringify(data, null, 2);
+        const job = Array.isArray(data) ? data[0] : data;
 
-        // Show Verify button if we have a row_number
-        if (data.row_number) {
-          document.getElementById("verifyBtn").style.display = "inline-block";
-        }
+        document.getElementById("time").textContent = job["Timestamp"] || "N/A";
+        document.getElementById("wallet").textContent = job["Wallet Address"] || "N/A";
+        document.getElementById("nft").textContent = job["NFT Name"] || "N/A";
       } catch (err) {
-        document.getElementById("rowData").textContent =
-          "Error fetching data. Check console.";
-        console.error(err);
+        alert("⚠️ Error fetching job data");
+      } finally {
+        nextBtn.textContent = "➡️ Load Next Job";
       }
-    });
-
-    // 🟡 Verify row
-    document.getElementById("verifyBtn").addEventListener("click", async () => {
-      if (!currentRow || !currentRow.row_number)
-        return alert("No row loaded or missing row_number.");
-      try {
-        const res = await fetch(verifyRowUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            row_number: currentRow.row_number,
-            wallet: currentRow["Wallet Address"],
-            verified: true
-          }),
-        });
-        const data = await res.json();
-        document.getElementById("rowData").textContent =
-          "✅ Row verified successfully:\n" + JSON.stringify(data, null, 2);
-      } catch (err) {
-        document.getElementById("rowData").textContent =
-          "❌ Verification failed. Check console.";
-        console.error(err);
-      }
-    });
+    }
+    // Auto-load first job
+    loadNextJob();
   </script>
 </body>
 </html>
